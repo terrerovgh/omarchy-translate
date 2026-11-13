@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
-  "id": "terrerov.translate",
-  "name": "Traducir",
+  "id": "io.github.terrerovgh.translate-selection",
+  "name": "Translate Selection",
   "version": "1.0.0",
-  "author": "terrerov",
-  "description": "Translate the selected text to Spanish in an overlay card",
+  "author": "terrerovgh",
+  "license": "MIT",
+  "description": "Translate the selected text with a hotkey: auto-detects the language, translates to Spanish (or to English when it is already Spanish) in a themed overlay card.",
   "kinds": [
     "overlay"
   ],

@@ -115,7 +115,7 @@ Item {
   function dismiss() {
     root.opened = false
     if (root.shell && typeof root.shell.hide === "function")
-      root.shell.hide((root.manifest && root.manifest.id) || "terrerov.translate")
+      root.shell.hide((root.manifest && root.manifest.id) || "io.github.terrerovgh.translate-selection")
   }
 
   function toggle() {
@@ -132,7 +132,7 @@ Item {
     }
     stderr: StdioCollector {
       waitForEnd: true
-      onStreamFinished: if (text.trim() !== "") console.warn("terrerov.translate", text.trim())
+      onStreamFinished: if (text.trim() !== "") console.warn("io.github.terrerovgh.translate-selection", text.trim())
     }
   }
 
