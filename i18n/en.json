@@ -1,0 +1,8 @@
+{
+  "title": "Translation",
+  "loading": "Translating…",
+  "empty": "Select some text first",
+  "error": "Could not translate: %1",
+  "hint": "Enter copy · Esc close",
+  "copied": "Translation copied"
+}

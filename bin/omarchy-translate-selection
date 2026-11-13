@@ -1,0 +1,11 @@
+#!/bin/bash
+# Translate the current text selection to Spanish in the Omarchy overlay
+# (plugin ~/.config/omarchy/plugins/terrerov.translate). Bound to SUPER+ALT+T.
+
+text=$(wl-paste --primary --no-newline 2>/dev/null)
+if [[ -z ${text//[[:space:]]/} ]]; then
+  text=$(wl-paste --no-newline --type text 2>/dev/null)
+fi
+
+payload=$(jq -nc --arg t "${text:0:5000}" '{text: $t}')
+exec omarchy-shell -q shell summon terrerov.translate "$payload"

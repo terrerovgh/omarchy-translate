@@ -1,0 +1,8 @@
+{
+  "title": "Traducción",
+  "loading": "Traduciendo…",
+  "empty": "Selecciona un texto primero",
+  "error": "No se pudo traducir: %1",
+  "hint": "Enter copiar · Esc cerrar",
+  "copied": "Traducción copiada"
+}

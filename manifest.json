@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "terrerov.translate",
+  "name": "Traducir",
+  "version": "1.0.0",
+  "author": "terrerov",
+  "description": "Translate the selected text to Spanish in an overlay card",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Translate.qml"
+  }
+}
