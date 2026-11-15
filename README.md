@@ -45,7 +45,7 @@ Then delete the `o.bind("SUPER + ALT + T", ...)` line from `~/.config/hypr/bindi
 
 ## Dependencies
 
-- `python3` (standard library only), `wl-clipboard` (`wl-paste`, `wl-copy`) and `jq`. Omarchy ships all three.
+- `python3` (standard library only) and `wl-clipboard` (`wl-paste`, `wl-copy`). Omarchy ships both.
 - An internet connection. Translation uses Google Translate's public, keyless web endpoints.
 
 ## Change the languages
@@ -78,7 +78,7 @@ echo "Ich habe Hunger" | ./translate.py
 ## Privacy and security
 
 - Every text you translate is sent to Google: `clients5.google.com`, with `translate.googleapis.com` as a fallback. Nothing else is sent, and nothing is stored.
-- The selected text goes to the translator as a process argument and is never run through a shell.
+- The selected text never appears in a process command line, where other local accounts could read it from `/proc`. The launcher only opens the card, `translate.py` reads the selection itself with `wl-paste` through a pipe, and the overlay passes text to `translate.py` and copies to `wl-copy` only through stdin. Nothing runs through a shell.
 - Translations are always shown as plain text, so markup in the input or the response is not rendered.
 - Input is limited to 5000 characters and responses to 1 MB, with an 8-second timeout.
 

@@ -45,7 +45,7 @@ Después borra la línea `o.bind("SUPER + ALT + T", ...)` de `~/.config/hypr/bin
 
 ## Dependencias
 
-- `python3` (solo biblioteca estándar), `wl-clipboard` (`wl-paste`, `wl-copy`) y `jq`. Omarchy ya incluye los tres.
+- `python3` (solo biblioteca estándar) y `wl-clipboard` (`wl-paste`, `wl-copy`). Omarchy ya incluye los dos.
 - Conexión a internet: usa los endpoints web públicos de Google Translate, que no necesitan clave.
 
 ## Cambiar los idiomas
@@ -68,7 +68,7 @@ echo "Ich habe Hunger" | ./translate.py
 ## Privacidad y seguridad
 
 - Cada texto que traduces se envía a Google: a `clients5.google.com`, o a `translate.googleapis.com` si el primero falla. No se envía nada más y no se guarda nada.
-- El texto seleccionado se pasa al traductor como argumento de proceso; nunca pasa por una shell.
+- El texto seleccionado nunca aparece en la línea de comandos de un proceso, donde otras cuentas locales podrían leerlo en `/proc`. El launcher solo abre la tarjeta, `translate.py` lee la selección con `wl-paste` a través de un pipe, y la tarjeta le pasa el texto a `translate.py` y a `wl-copy` solo por stdin. Nada pasa por una shell.
 - El resultado se muestra siempre como texto plano, así que nunca se interpreta marcado (HTML) ni en la entrada ni en la respuesta.
 - La entrada se limita a 5000 caracteres y la respuesta a 1 MB, con 8 segundos de tiempo máximo.
 

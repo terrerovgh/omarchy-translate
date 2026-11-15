@@ -7,7 +7,10 @@ import qs.Commons as Commons
 import qs.Ui
 
 // Overlay card that shows the Spanish translation of the selected text.
-// Summoned by ~/.local/bin/omarchy-translate-selection with {"text": "..."}.
+// Summoned by ~/.local/bin/omarchy-translate-selection with {"source": "selection"}:
+// translate.py reads the selection itself through wl-paste, and every text
+// goes to a process on stdin, never as an argument (other local accounts can
+// read process arguments in /proc). {"text": "..."} payloads still work.
 // All displayed text is untrusted, so every Text uses PlainText.
 Item {
   id: root
@@ -28,8 +31,7 @@ Item {
   property string sourceLang: ""
   property string resultLang: ""
   property string errorText: ""
-  property string queuedText: ""
-  property bool hasQueued: false
+  property var queuedRequest: null
 
   property string fontFamily: Style.font.menuFamily
   property color background: Commons.Color.menu.background
@@ -47,23 +49,26 @@ Item {
   function open(payloadJson) {
     var payload = ({})
     try { payload = JSON.parse(payloadJson || "{}") } catch (e) { payload = ({}) }
+    var fromSelection = payload.source === "selection"
     var text = typeof payload.text === "string" ? payload.text.trim().slice(0, root.maxChars) : ""
 
     root.opened = true
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })
     flick.contentY = 0
 
-    if (!text) {
+    if (!fromSelection && !text) {
       root.original = ""
       root.translation = ""
       root.phase = "empty"
       return
     }
-    root.start(text)
+    root.start(fromSelection ? { source: "selection" } : { text: text })
   }
 
-  function start(text) {
-    root.original = text
+  function start(request) {
+    request.to = root.targetLang
+    request.alt = root.altLang
+    root.original = typeof request.text === "string" ? request.text : ""
     root.translation = ""
     root.sourceLang = ""
     root.resultLang = ""
@@ -72,25 +77,26 @@ Item {
 
     if (translateProcess.running) {
       // Let the running request finish, then translate the newest selection.
-      root.queuedText = text
-      root.hasQueued = true
+      root.queuedRequest = request
       return
     }
-    translateProcess.command = ["python3", "-I", root.scriptPath, "--to", root.targetLang, "--alt", root.altLang, text]
+    translateProcess.request = request
     translateProcess.running = true
   }
 
   function handleOutput(output) {
-    if (root.hasQueued) {
-      var next = root.queuedText
-      root.hasQueued = false
-      root.queuedText = ""
+    if (root.queuedRequest !== null) {
+      var next = root.queuedRequest
+      root.queuedRequest = null
       Qt.callLater(function() { root.start(next) })
       return
     }
     var result = null
     try { result = JSON.parse(String(output || "").trim()) } catch (e) { result = null }
-    if (result && result.ok && typeof result.text === "string") {
+    if (result && typeof result.original === "string") root.original = result.original.slice(0, root.maxChars)
+    if (result && result.error === "empty text") {
+      root.phase = "empty"
+    } else if (result && result.ok && typeof result.text === "string") {
       root.translation = result.text
       root.sourceLang = String(result.source || "").slice(0, 16)
       root.resultLang = String(result.target || root.targetLang).slice(0, 16)
@@ -103,8 +109,9 @@ Item {
 
   function copyTranslation() {
     if (root.phase !== "done" || !root.translation) return
-    Quickshell.execDetached(["wl-copy", "--", root.translation])
-    Quickshell.execDetached([root.omarchyPath + "/bin/omarchy-notification-send", "-t", "2000", strings.t("copied")])
+    // Through translate.py's stdin to wl-copy's stdin: never a process argument.
+    copyProcess.request = { text: root.translation }
+    if (!copyProcess.running) copyProcess.running = true
     root.dismiss()
   }
 
@@ -125,7 +132,14 @@ Item {
 
   Process {
     id: translateProcess
+    property var request: null
+    command: ["python3", "-I", root.scriptPath, "--stdin"]
     running: false
+    stdinEnabled: true
+    onStarted: {
+      write(JSON.stringify(request || {}) + "\n")
+      request = null
+    }
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: root.handleOutput(text)
@@ -133,6 +147,22 @@ Item {
     stderr: StdioCollector {
       waitForEnd: true
       onStreamFinished: if (text.trim() !== "") console.warn("io.github.terrerovgh.translate-selection", text.trim())
+    }
+  }
+
+  Process {
+    id: copyProcess
+    property var request: null
+    command: ["python3", "-I", root.scriptPath, "--copy"]
+    running: false
+    stdinEnabled: true
+    onStarted: {
+      write(JSON.stringify(request || {}) + "\n")
+      request = null
+    }
+    onExited: function(exitCode, exitStatus) {
+      if (exitCode === 0)
+        Quickshell.execDetached([root.omarchyPath + "/bin/omarchy-notification-send", "-t", "2000", strings.t("copied")])
     }
   }
 

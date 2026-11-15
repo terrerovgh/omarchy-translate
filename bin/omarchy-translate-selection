@@ -1,11 +1,8 @@
 #!/bin/bash
 # Translate the current text selection in the Omarchy overlay
 # (plugin io.github.terrerovgh.translate-selection). Bind it to a key, e.g. SUPER+ALT+T.
+#
+# The selection is not read here: the plugin reads it with wl-paste through a
+# pipe, so the text never appears in any process's command line.
 
-text=$(wl-paste --primary --no-newline 2>/dev/null)
-if [[ -z ${text//[[:space:]]/} ]]; then
-  text=$(wl-paste --no-newline --type text 2>/dev/null)
-fi
-
-payload=$(jq -nc --arg t "${text:0:5000}" '{text: $t}')
-exec omarchy-shell -q shell summon io.github.terrerovgh.translate-selection "$payload"
+exec omarchy-shell -q shell summon io.github.terrerovgh.translate-selection '{"source":"selection"}'
